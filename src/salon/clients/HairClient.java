@@ -4,12 +4,17 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.List;
+
+import salon.models.Shampoo;
+import salon.communication.*;
 
 public class HairClient 
 {
 	private Socket socket;
 	private ObjectOutputStream oos;
-	private ObjectInputStream ois;
+	private ObjectInputStream ois;	
+	
 	
 	public boolean initConnection()
 	{
@@ -69,5 +74,53 @@ public class HairClient
 			e.printStackTrace();
 		}
 		return todaysSpecial;
+	}
+	public boolean addShampoo(Shampoo shampoo)
+	{
+		//boolean success=false;
+		Request req=new Request();
+		req.setAction("add_shampoo");
+		req.setObj(shampoo);
+		try
+		{
+			oos.writeObject(req);
+			Response resp=(Response)ois.readObject();
+			if(resp!=null)
+			{
+				if(!resp.isSuccess())
+				{
+					System.out.println("Client error:"+resp.getErrorMsg());
+				}
+			}
+			return resp.isSuccess();
+		}catch(ClassCastException |ClassNotFoundException |IOException e)
+		{
+			e.printStackTrace();
+		}
+		return false;
+	}
+	public List<Shampoo> getShampoos()
+	{
+		//boolean success=false;
+		List<Shampoo> shampooList=null;
+		Request req=new Request();
+		req.setAction("get_shampoo");
+		try
+		{
+			oos.writeObject(req);
+			Response resp=(Response)ois.readObject();
+			if(resp!=null)
+			{
+				if(!resp.isSuccess())
+				{
+					System.out.println("Client error:"+resp.getErrorMsg());
+				}
+			}
+			return (java.util.List<Shampoo>)resp.getData();
+		}catch(ClassCastException |ClassNotFoundException |IOException e)
+		{
+			e.printStackTrace();
+		}
+		return new java.util.ArrayList<Shampoo>();
 	}
 }
